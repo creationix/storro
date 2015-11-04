@@ -14,7 +14,8 @@ module.exports = {
 };
 
 function* loadRaw(hash) {
-  return pako.inflate(yield* storage.read(hash));
+  var raw = yield* storage.read(hash);
+  return raw && pako.inflate(raw);
 }
 
 function* loadAny(hash) {

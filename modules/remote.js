@@ -90,6 +90,7 @@ module.exports = function* (url) {
     write: write,
     fetch: fetch,
     publish: publish,
+    connection: connection,
   };
 
   // Fetch a hash and all dependent hashes from remote at url.

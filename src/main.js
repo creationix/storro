@@ -5,10 +5,8 @@ var makeRemote = require('remote');
 var codec = require('codec');
 var bodec = codec.bodec;
 
-var url = "wss://lit.luvit.io/";
-var remote;
 
-function* loadPackage(name) {
+function* loadPackage(remote, name) {
   remote.write("match " + name);
   var line = yield* remote.read();
   var match = line.match(/^reply ([^ ]+) ([^ ]+)$/);
@@ -31,7 +29,7 @@ function* loadPackage(name) {
 run(function* () {
 
   // Sync down some packages
-  remote = yield* makeRemote(url);
+  var remote = yield* makeRemote("wss://lit.luvit.io/");
   var packages = [
     "creationix/websocket-codec",
     "luvit/luvit",
@@ -39,9 +37,9 @@ run(function* () {
   ];
   for (var i = 0, l = packages.length; i < l; i++) {
     var name = packages[i];
-    console.log(name, yield* loadPackage(name));
+    console.log(name, yield* loadPackage(remote, name));
   }
-
+  remote.connection.close();
 
   // console.log(codec);
   // var tree = codec.toMap(yield* db.loadAs("tree", tag.object));
