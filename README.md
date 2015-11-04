@@ -32,6 +32,12 @@ Given a string key, you need to return the binary data.
 
 Given a string key and binary data, store it for later retrieval.
 
+## Connection Interface
+
+### connection(url) -> socket
+
+This is a simple function that accepts a URL and returns a socket interface.
+
 ## Socket Interface
 
 You need to implement a socket interface for connecting to remotes.  This needs

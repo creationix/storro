@@ -1,7 +1,7 @@
 /*jshint strict:false*/
 
 // In own file since we need non-strict mode for octal literals.
-module.exports = {
+return {
   tree:   040000,
   blob:   0100644,
   file:   0100644,

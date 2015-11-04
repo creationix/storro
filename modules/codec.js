@@ -18,7 +18,7 @@ var decoders = {
   tag: decodeTag,
 };
 
-module.exports = {
+return {
   toMap: toMap,
   bodec: bodec,
   modes: modes,

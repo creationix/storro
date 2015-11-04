@@ -1,14 +1,12 @@
 "use strict";
-var db = require('db');
+var db = require('db')(require('idb-storage'));
 var run = require('run');
-var makeRemote = require('remote');
-var codec = require('codec');
-var bodec = codec.bodec;
-
+var socket = require('ws-connection')("wss://lit.luvit.io/");
+var remote = require('sync')(db, socket);
 
 function* loadPackage(remote, name) {
-  remote.write("match " + name);
-  var line = yield* remote.read();
+  yield* socket.write("match " + name);
+  var line = yield* socket.read();
   var match = line.match(/^reply ([^ ]+) ([^ ]+)$/);
   var version = match[1];
   var hash = match[2];
@@ -33,7 +31,6 @@ function* loadPackage(remote, name) {
 run(function* () {
 
   // Sync down some packages
-  var remote = yield* makeRemote("wss://lit.luvit.io/");
   var packages = [
     "creationix/websocket-codec",
     "luvit/luvit",
@@ -57,7 +54,9 @@ run(function* () {
   // console.log(tree);
   // tree = codec.toMap(yield* db.loadAs("tree", tree.libs.hash));
   // console.log(tree);
-  // var lua = bodec.toUnicode(yield* db.loadAs("blob", tree["codec.lua"].hash));
+  // var lua = bodec.toUnicode(
+  //   yield* db.loadAs("blob", tree["codec.lua"].hash)
+  // );
   // console.log(lua);
 
   // var hash = yield* db.saveAs("tree", [

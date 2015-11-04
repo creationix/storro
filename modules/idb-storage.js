@@ -9,7 +9,7 @@ var db;
 var clients = null;
 startup();
 
-module.exports = {
+return {
   read: read,
   write: write,
 };

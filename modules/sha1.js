@@ -6,7 +6,7 @@ var WordArray = typeof Uint32Array === "undefined" ? Array : Uint32Array;
 var shared = new WordArray(80);
 
 // Input chunks must be either arrays of bytes or "raw" encoded strings
-module.exports = function (buffer) {
+return function (buffer) {
   if (buffer === undefined) { return sha1(false); }
   var shasum = sha1(true);
   shasum.update(buffer);
