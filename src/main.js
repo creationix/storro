@@ -17,12 +17,16 @@ function* loadPackage(remote, name) {
 
   // Walk the git tree manually to pull out a lua file as a string.
   var tag = yield* db.loadAs("tag", hash);
-  var json = tag.message.match(/^[^\n]+/)[0];
+  var meta = JSON.parse(tag.message.match(/^[^\n]+/)[0]);
+  if (meta.snapshot) {
+    yield* remote.fetch(meta.snapshot);
+  }
+
   return {
     version: version,
     hash: hash,
     tag: tag,
-    meta: JSON.parse(json),
+    meta: meta,
   };
 }
 
@@ -35,9 +39,16 @@ run(function* () {
     "luvit/luvit",
     "luvit/lit",
   ];
-  for (var i = 0, l = packages.length; i < l; i++) {
-    var name = packages[i];
-    console.log(name, yield* loadPackage(remote, name));
+  while (packages.length) {
+    var name = packages.shift();
+    console.log("Syncing", name);
+    var data = yield* loadPackage(remote, name);
+    console.log(name, data);
+    if (data.meta.dependencies) {
+      for (var i = 0, l = data.meta.dependencies.length; i < l; i++) {
+        packages.push(data.meta.dependencies[i].replace("@", " "));
+      }
+    }
   }
   remote.connection.close();
 
