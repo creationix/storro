@@ -3,17 +3,22 @@
 var storage = require('storage');
 var codec = require('codec');
 var sha1 = require('sha1');
+var pako = window.pako;
 
 module.exports = {
-  loadRaw: storage.read,
+  loadRaw: loadRaw,
   loadAny: loadAny,
   loadAs: loadAs,
   saveRaw: saveRaw,
   saveAs: saveAs,
 };
 
+function* loadRaw(hash) {
+  return pako.inflate(yield* storage.read(hash));
+}
+
 function* loadAny(hash) {
-  return deframe(yield* storage.read(hash), true);
+  return codec.deframe(yield* loadRaw(hash), true);
 }
 
 // loadAs(type, hash) -> decoded object
@@ -25,7 +30,7 @@ function* loadAs(type, hash) {
 
 function* saveRaw(data) {
   var hash = sha1(data);
-  yield* storage.write(hash, data);
+  yield* storage.write(hash, pako.deflate(data));
   return hash;
 }
 

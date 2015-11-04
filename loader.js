@@ -63,7 +63,6 @@ window.addEventListener("load", function () {
             if (callback) return callback(err);
             throw err;
           }
-          console.log(filename, ret);
           if (ret !== undefined) module.exports = ret;
           if (callback) return callback(null, module.exports);
         });

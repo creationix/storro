@@ -18,8 +18,8 @@ var decoders = {
   tag: decodeTag,
 };
 
-
 module.exports = {
+  toMap: toMap,
   bodec: bodec,
   modes: modes,
   safe: safe,
@@ -276,4 +276,16 @@ function parseDec(buffer, start, end) {
     val = val * 10 + buffer[start++] - 0x30;
   }
   return val;
+}
+
+function toMap(tree) {
+  var map = {};
+  for (var i = 0, l = tree.length; i < l; i++) {
+    var entry = tree[i];
+    map[entry.name] = {
+      hash: entry.hash,
+      mode: entry.mode
+    };
+  }
+  return map;
 }
