@@ -5,66 +5,45 @@ var run = require('run');
 // load on the real server.
 var socket = require('ws-connection')("ws://localhost:4822/");
 var remote = require('sync')(db, socket);
+var codec = require('codec');
+var bodec = require('bodec');
+var CodeMirror = window.CodeMirror;
 
+run(function* () {
 
-function* loadPackage(remote, name) {
-  yield* socket.write("match " + name);
+  console.log("Getting latest lit release.");
+  yield* socket.write("match luvit/lit");
   var line = yield* socket.read();
   var match = line.match(/^reply ([^ ]+) ([^ ]+)$/);
   var version = match[1];
   var hash = match[2];
-  // Syncing down any missing data for release.
+  // Syncing down any missing data.
   yield* remote.fetch(hash);
 
   // Walk the git tree manually to pull out a lua file as a string.
   var tag = yield* db.loadAs("tag", hash);
   var meta = JSON.parse(tag.message.match(/^[^\n]+/)[0]);
-  if (meta.snapshot) {
-    yield* remote.fetch(meta.snapshot);
-  }
-
-  return {
-    version: version,
-    hash: hash,
+  console.log({
     tag: tag,
     meta: meta,
-  };
-}
+    version: version,
+    hash: hash});
 
-run(function* () {
+  // Loading the snapshot for the release
+  // This will include full dependencies
+  yield* remote.fetch(meta.snapshot);
 
-  var seen = {};
-  // Sync down some packages
-  var packages = [
-    "creationix/websocket-codec",
-    "luvit/luvit",
-    "luvit/lit",
-  ];
-  while (packages.length) {
-    var name = packages.shift();
-    console.log("Syncing", name);
-    var data = yield* loadPackage(remote, name);
-    console.log(name, data);
-    if (data.meta.dependencies) {
-      for (var i = 0, l = data.meta.dependencies.length; i < l; i++) {
-        var query = data.meta.dependencies[i].replace("@", " ");
-        if (!seen[query]) {
-          packages.push(query);
-          seen[query] = true;
-        }
-      }
-    }
-  }
-
-  // console.log(codec);
-  // var tree = codec.toMap(yield* db.loadAs("tree", tag.object));
-  // console.log(tree);
-  // tree = codec.toMap(yield* db.loadAs("tree", tree.libs.hash));
-  // console.log(tree);
-  // var lua = bodec.toUnicode(
-  //   yield* db.loadAs("blob", tree["codec.lua"].hash)
-  // );
-  // console.log(lua);
+  var tree = codec.toMap(yield* db.loadAs("tree", meta.snapshot));
+  console.log(tree);
+  tree = codec.toMap(yield* db.loadAs("tree", tree.deps.hash));
+  console.log(tree);
+  var lua = bodec.toUnicode(
+    yield* db.loadAs("blob", tree["websocket-codec.lua"].hash)
+  );
+  var cm = CodeMirror(document.body, {
+    value: lua,
+    mode:  "lua"
+  });
 
   // var hash = yield* db.saveAs("tree", [
   //   { name: "Welcome.txt",
