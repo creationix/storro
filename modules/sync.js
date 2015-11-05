@@ -69,6 +69,7 @@ return function (db, socket) {
         for (i = 0, l = obj.body.parents; i < l; i++) {
           yield* addHash(obj.body.parents[i]);
         }
+        yield* addHash(obj.body.tree);
       }
       else if (obj.type === "tree") {
         for (i = 0, l = obj.body.length; i < l; i++) {
