@@ -1,8 +1,11 @@
 "use strict";
 var db = require('db')(require('idb-storage'));
 var run = require('run');
-var socket = require('ws-connection')("wss://lit.luvit.io/");
+// Run a local `lit serve` as a caching proxy to speed up tests and reduce
+// load on the real server.
+var socket = require('ws-connection')("ws://localhost:4822/");
 var remote = require('sync')(db, socket);
+
 
 function* loadPackage(remote, name) {
   yield* socket.write("match " + name);
@@ -30,6 +33,7 @@ function* loadPackage(remote, name) {
 
 run(function* () {
 
+  var seen = {};
   // Sync down some packages
   var packages = [
     "creationix/websocket-codec",
@@ -43,11 +47,14 @@ run(function* () {
     console.log(name, data);
     if (data.meta.dependencies) {
       for (var i = 0, l = data.meta.dependencies.length; i < l; i++) {
-        packages.push(data.meta.dependencies[i].replace("@", " "));
+        var query = data.meta.dependencies[i].replace("@", " ");
+        if (!seen[query]) {
+          packages.push(query);
+          seen[query] = true;
+        }
       }
     }
   }
-  remote.connection.close();
 
   // console.log(codec);
   // var tree = codec.toMap(yield* db.loadAs("tree", tag.object));
